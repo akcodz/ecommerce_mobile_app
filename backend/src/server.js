@@ -1,32 +1,50 @@
-import 'dotenv/config'
-import express from 'express'
-import { ENV} from "./config/env.js";
+import "dotenv/config";
+import express from "express";
 import path from "path";
+import { ENV } from "./config/env.js";
 import connectDB from "./config/db.js";
-import { clerkMiddleware } from '@clerk/express'
-import {functions, inngest} from "./config/inngest.js";
+import { clerkMiddleware } from "@clerk/express";
+import { functions, inngest } from "./config/inngest.js";
 import { serve } from "inngest/express";
 
-const app = express()
+const app = express();
+app.use(express.json());
 
-app.use(express.json())
-app.use(clerkMiddleware())
-const __dirname=path.resolve()
+// Apply Clerk middleware only to API routes
+app.use("/api", clerkMiddleware());
 
-app.get('/api/health', (req, res) => {
-    res.send('Hello World!')
-})
+// Health check
+app.get("/api/health", (req, res) => {
+  res.json({ status: "OK" });
+});
 
+// Inngest webhook endpoint
 app.use("/api/inngest", serve({ client: inngest, functions }));
 
-if (ENV.NODE_ENV === 'production') {
-    app.use(express.static(path.join(__dirname ,"../admin/dist")))
-    app.get("/{*any}", (req, res) => {
+// Serve frontend in production
+if (ENV.NODE_ENV === "production") {
+  const __dirname = path.resolve();
+  const frontendPath = path.join(__dirname, "../../admin/dist");
 
-        res.sendFile(path.join(__dirname ,"../admin","dist","index.html"))
-    })
+  app.use(express.static(frontendPath));
+
+  // SPA catch-all
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(frontendPath, "index.html"));
+  });
 }
-app.listen(ENV.PORT, () => {
-    console.log(`Server running on port ${ENV.PORT}!`)
-connectDB()
-})
+
+// Start server after DB connection
+const startServer = async () => {
+  try {
+    await connectDB(); 
+    app.listen(ENV.PORT, () => {
+      console.log(`Server running on port ${ENV.PORT}!`);
+    });
+  } catch (err) {
+    console.error("Failed to start server:", err);
+    process.exit(1);
+  }
+};
+
+startServer();

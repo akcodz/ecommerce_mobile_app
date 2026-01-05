@@ -23,9 +23,11 @@ const syncUserCreation = inngest.createFunction(
                 imageUrl: image_url || "",
                 addresses: [],
                 wishlist: [],
-            };
+            }; 
+            console.log(newUser)
 
-            await User.create(newUser);
+            const user=await User.create(newUser);
+            console.log(user)
 
         } catch (err) {
             // Only log errors
