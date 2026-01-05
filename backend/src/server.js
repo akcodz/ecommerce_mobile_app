@@ -10,7 +10,7 @@ import { serve } from "inngest/express";
 const app = express();
 app.use(express.json());
 
-// Apply Clerk middleware only to API routes
+// Apply Clerk only to API routes
 app.use("/api", clerkMiddleware());
 
 // Health check
@@ -18,7 +18,7 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "OK" });
 });
 
-// Inngest webhook endpoint
+// Inngest endpoint
 app.use("/api/inngest", serve({ client: inngest, functions }));
 
 // Serve frontend in production
@@ -28,21 +28,21 @@ if (ENV.NODE_ENV === "production") {
 
   app.use(express.static(frontendPath));
 
-  // SPA catch-all
-  app.get("*", (req, res) => {
+  // SPA fallback (FIXED)
+  app.get(/.*/, (req, res) => {
     res.sendFile(path.join(frontendPath, "index.html"));
   });
 }
 
-// Start server after DB connection
+// Start server AFTER DB is connected
 const startServer = async () => {
   try {
-    await connectDB(); 
+    await connectDB();
     app.listen(ENV.PORT, () => {
-      console.log(`Server running on port ${ENV.PORT}!`);
+      console.log(`Server running on port ${ENV.PORT}`);
     });
   } catch (err) {
-    console.error("Failed to start server:", err);
+    console.error("Server startup failed:", err);
     process.exit(1);
   }
 };
