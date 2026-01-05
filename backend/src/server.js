@@ -23,14 +23,10 @@ app.use("/api/inngest", serve({ client: inngest, functions }));
 
 // Serve frontend in production
 if (ENV.NODE_ENV === "production") {
-  const __dirname = path.resolve();
-  const frontendPath = path.join(__dirname, "../../admin/dist");
+  app.use(express.static(path.join(__dirname, "../admin/dist")));
 
-  app.use(express.static(frontendPath));
-
-  // SPA fallback (FIXED)
-  app.get(/.*/, (req, res) => {
-    res.sendFile(path.join(frontendPath, "index.html"));
+  app.get("/{*any}", (req, res) => {
+    res.sendFile(path.join(__dirname, "../admin", "dist", "index.html"));
   });
 }
 
