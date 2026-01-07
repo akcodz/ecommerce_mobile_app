@@ -27,7 +27,7 @@ app.use(cors({
     }
 ));
 // Clerk applies only to API routes
-app.use("/api", clerkMiddleware());
+app.use(clerkMiddleware());
 
 // Health check
 app.get("/api/health", (req, res) => {
