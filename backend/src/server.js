@@ -27,7 +27,12 @@ app.use(cors({
     }
 ));
 // Clerk applies only to API routes
-app.use(clerkMiddleware());
+app.use(
+  clerkMiddleware({
+    publishableKey: ENV.CLERK_PUBLISHABLE_KEY,
+    secretKey: ENV.CLERK_SECRET_KEY,
+  })
+);
 
 // Health check
 app.get("/api/health", (req, res) => {
